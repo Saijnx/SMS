@@ -1,0 +1,1003 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Co-curricular Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ["Inter", "system-ui", "sans-serif"] },
+          },
+        },
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      body { font-family: "Inter", system-ui, sans-serif; }
+      .icon { width: 17px; height: 17px; stroke-width: 1.75; }
+      .icon-sm { width: 13px; height: 13px; stroke-width: 1.75; }
+      ::-webkit-scrollbar { width: 8px; height: 8px; }
+      ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+      .nav-item.active { background-color: #0f172a; color: #ffffff; }
+      .nav-item:not(.active):hover { background-color: #f1f5f9; }
+      .fade-in { animation: fadeIn 0.15s ease-in; }
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      #sidebar { transition: transform 0.2s ease; }
+      #overlay { display: none; }
+      #overlay.open { display: block; }
+      .report-doc { font-family: Georgia, "Times New Roman", Times, serif; color: #1a1a1a; line-height: 1.5; }
+      .report-doc table { border-collapse: collapse; width: 100%; }
+      .report-doc th, .report-doc td { border: 1px solid #444; padding: 6px 9px; font-size: 12.5px; text-align: left; vertical-align: top; }
+      .report-doc th { background: #eeeeee; font-weight: 600; }
+      .report-doc h1 { font-size: 19px; font-weight: 700; letter-spacing: 0.02em; text-align: center; margin: 0 0 2px; }
+      .report-doc h2 { font-size: 13.5px; font-weight: 700; margin: 22px 0 8px; padding-bottom: 4px; border-bottom: 1.5px solid #1a1a1a; text-transform: uppercase; letter-spacing: 0.03em; }
+      .report-doc p { font-size: 12.5px; margin: 0 0 8px; }
+      .report-preview-shell .report-doc h1 { font-size: 13px; }
+      .report-preview-shell .report-doc h2 { font-size: 9.5px; margin: 12px 0 5px; }
+      .report-preview-shell .report-doc p { font-size: 9.5px; margin: 0 0 5px; }
+      .report-preview-shell .report-doc th, .report-preview-shell .report-doc td { font-size: 8.5px; padding: 3px 5px; }
+      /* ---- image upload area ---- */
+      .img-upload-label { display: flex; align-items: center; gap: 8px; cursor: pointer; border: 1.5px dashed #cbd5e1; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #64748b; transition: border-color .15s, background .15s; }
+      .img-upload-label:hover { border-color: #94a3b8; background: #f8fafc; }
+      .img-preview-wrap { position: relative; display: inline-block; margin-top: 8px; }
+      .img-preview-wrap img { max-height: 120px; border-radius: 8px; border: 1px solid #e2e8f0; display: block; }
+      .img-preview-wrap .remove-img { position: absolute; top: -6px; right: -6px; background: #0f172a; color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; line-height: 1; }
+      /* announcement card image */
+      .ann-card-img { margin-top: 10px; border-radius: 8px; max-width: 100%; width: 100%; max-height: 420px; object-fit: contain; background: #f8fafc; border: 1px solid #e2e8f0; display: block; }
+      @media print {
+        body.printing-report > *:not(#report-print-area) { display: none !important; }
+        #report-print-area { display: block !important; padding: 0 !important; }
+        @page { margin: 18mm 16mm; }
+        .report-doc tr { break-inside: avoid; }
+        .report-doc table { break-inside: auto; }
+        .report-doc h2 { break-after: avoid; }
+        .report-doc h1, .report-doc > p:first-of-type { break-after: avoid; }
+      }
+      @media (max-width: 767px) {
+        #sidebar { position: fixed; inset: 0 auto 0 0; transform: translateX(-100%); z-index: 40; width: 260px; }
+        #sidebar.open { transform: translateX(0); }
+      }
+    </style>
+  </head>
+  <body class="bg-slate-50 text-slate-900">
+    <div class="flex min-h-screen">
+      <div id="overlay" class="fixed inset-0 bg-slate-900/30 z-30" onclick="closeSidebar()"></div>
+      <aside id="sidebar" class="w-64 shrink-0 bg-white border-r border-slate-200 py-5 flex flex-col">
+        <div class="px-5 pb-4 mb-2 border-b border-slate-100 flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-slate-900">Co-curricular Module</p>
+            <p class="text-xs text-slate-400 mt-0.5">School Management System</p>
+          </div>
+          <button class="md:hidden text-slate-400" onclick="closeSidebar()" aria-label="Close menu">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="icon"><path stroke-linecap="round" stroke-linejoin="round" d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <nav id="nav" class="flex-1 px-2 space-y-0.5 overflow-y-auto"></nav>
+      </aside>
+      <div class="flex-1 min-w-0 flex flex-col">
+        <header class="md:hidden flex items-center gap-3 bg-white border-b border-slate-200 px-4 py-3 sticky top-0 z-20">
+          <button onclick="openSidebar()" aria-label="Open menu" class="text-slate-600">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="icon"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5"/></svg>
+          </button>
+          <p class="text-sm font-medium text-slate-900" id="mobile-title">Dashboard</p>
+        </header>
+        <main class="flex-1 min-w-0 p-4 sm:p-6 md:p-8 overflow-y-auto">
+          <div id="view" class="fade-in"></div>
+        </main>
+      </div>
+    </div>
+    <div id="report-print-area" style="display:none"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script>
+    /* ---------- Icon set ---------- */
+    const ICONS = {
+      dashboard: '<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6a2.25 2.25 0 0 1 2.25-2.25h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/>',
+      directory: '<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/>',
+      registration: '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75M3.75 6.75h16.5M6.75 3.75h10.5a1.5 1.5 0 0 1 1.5 1.5v13.5a1.5 1.5 0 0 1-1.5 1.5H6.75a1.5 1.5 0 0 1-1.5-1.5V5.25a1.5 1.5 0 0 1 1.5-1.5Z"/>',
+      memberships: '<path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3M3.75 20.25v-1.5a3.75 3.75 0 0 1 3.75-3.75h1.5a3.75 3.75 0 0 1 3.75 3.75v1.5M10.5 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>',
+      elections: '<path stroke-linecap="round" stroke-linejoin="round" d="m9 12.75 2.25 2.25L15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>',
+      events: '<path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/>',
+      achievements: '<path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-4.5A3.375 3.375 0 0 0 15.75 9h-.75m1.5 5.25v-4.5A3.375 3.375 0 0 1 19.5 9m-3 5.25V9m0 0a3.375 3.375 0 0 0-3.375-3.375H12a3.375 3.375 0 0 0-3.375 3.375m6.75 0h-6.75m0 5.25V9m0 5.25a3.375 3.375 0 0 1-3.375 3.375H4.5a3.375 3.375 0 0 1 3-3.375M8.25 9a3.375 3.375 0 0 1 3-3.375"/>',
+      budget: '<path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1 0-6H21M3 12a2.25 2.25 0 0 1 2.25-2.25H9a3 3 0 1 0 0-6H3M3 12v6.75A2.25 2.25 0 0 0 5.25 21H15M3 12V5.25A2.25 2.25 0 0 1 5.25 3H15"/>',
+      announcements: '<path stroke-linecap="round" stroke-linejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 1 1 0-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.077 1.02-.472 1.267a5.98 5.98 0 0 1-2.65.628c-.454 0-.898-.06-1.319-.174.219-.951.412-2.098.55-3.404m2.906-.9a48.6 48.6 0 0 0-2.906.09m2.906-9.18a48.6 48.6 0 0 0-2.906-.09M18 6.75v10.5m3-1.5v-7.5"/>',
+      volunteer: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m6-2a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z"/>',
+      analytics: '<path stroke-linecap="round" stroke-linejoin="round" d="M3 3v16.5A1.5 1.5 0 0 0 4.5 21H21M7.5 15.75V12M12 15.75V7.5m4.5 8.25V10.5"/>',
+      plus: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>',
+      search: '<path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>',
+      check: '<path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>',
+      x: '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>',
+      download: '<path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M7.5 12l4.5 4.5m0 0 4.5-4.5m-4.5 4.5V3"/>',
+      image: '<path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/>',
+    };
+    function icon(name, cls) {
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="${cls||'icon'}">${ICONS[name]||''}</svg>`;
+    }
+
+    /* ---------- Data store ---------- */
+    const state = {
+      clubs: [
+        {id:'CLB-001',name:'Robotics Society',category:'Technology',adviser:'Mr. Reyes',established:'2021-06-14',status:'active'},
+        {id:'CLB-002',name:'Debate Circle',category:'Academic',adviser:'Ms. Santos',established:'2019-08-02',status:'active'},
+        {id:'CLB-003',name:'Green Advocates',category:'Environment',adviser:'Mr. Cruz',established:'2022-01-20',status:'active'},
+        {id:'CLB-004',name:'Visual Arts Guild',category:'Arts',adviser:'Ms. Dela Peña',established:'2020-03-11',status:'inactive'},
+        {id:'CLB-005',name:'Music Ensemble',category:'Arts',adviser:'Ms. Fernandez',established:'2021-09-05',status:'active'},
+        {id:'CLB-006',name:'Basketball Varsity',category:'Sports',adviser:'Mr. Domingo',established:'2018-06-01',status:'active'},
+        {id:'CLB-007',name:'Community Outreach Corps',category:'Community Service',adviser:'Ms. Aquino',established:'2022-08-15',status:'active'},
+        {id:'CLB-008',name:'Chess Federation',category:'Academic',adviser:'Mr. Villanueva',established:'2023-02-10',status:'pending'},
+      ],
+      members: [
+        {id:'MEM-001',club:'Robotics Society',student:'Jian Carlo Ramos',role:'Member',joined:'2024-06-20',status:'active'},
+        {id:'MEM-002',club:'Debate Circle',student:'Alessa Marie Torres',role:'Member',joined:'2024-06-22',status:'active'},
+        {id:'MEM-003',club:'Robotics Society',student:'Nathaniel Uy',role:'Officer',joined:'2023-06-15',status:'active'},
+        {id:'MEM-004',club:'Robotics Society',student:'Miguel Angelo Bautista',role:'Member',joined:'2024-07-01',status:'active'},
+        {id:'MEM-005',club:'Green Advocates',student:'Kristine Joy Manalo',role:'Member',joined:'2024-06-25',status:'active'},
+        {id:'MEM-006',club:'Green Advocates',student:'Paolo Ignacio',role:'Officer',joined:'2023-07-10',status:'active'},
+        {id:'MEM-007',club:'Debate Circle',student:'Samantha Reyes',role:'Member',joined:'2024-08-02',status:'active'},
+        {id:'MEM-008',club:'Music Ensemble',student:'Erika Villamor',role:'Member',joined:'2024-06-18',status:'active'},
+        {id:'MEM-009',club:'Music Ensemble',student:'Josef Marquez',role:'Officer',joined:'2023-06-20',status:'active'},
+        {id:'MEM-010',club:'Basketball Varsity',student:'Rafael Santos',role:'Member',joined:'2024-06-14',status:'active'},
+        {id:'MEM-011',club:'Basketball Varsity',student:'Diego Mercado',role:'Member',joined:'2024-06-14',status:'active'},
+        {id:'MEM-012',club:'Community Outreach Corps',student:'Kristine Joy Manalo',role:'Member',joined:'2024-08-20',status:'active'},
+        {id:'MEM-013',club:'Community Outreach Corps',student:'Hannah Grace Lim',role:'Officer',joined:'2023-08-15',status:'active'},
+        {id:'MEM-014',club:'Visual Arts Guild',student:'Erika Villamor',role:'Member',joined:'2023-03-12',status:'inactive'},
+      ],
+      elections: [
+        {id:'ELC-001',club:'Robotics Society',position:'President',candidate:'Nathaniel Uy',term:'SY 2025-2026',votes:42,status:'approved'},
+        {id:'ELC-002',club:'Debate Circle',position:'Secretary',candidate:'Alessa Marie Torres',term:'SY 2025-2026',votes:31,status:'pending'},
+        {id:'ELC-003',club:'Green Advocates',position:'President',candidate:'Paolo Ignacio',term:'SY 2025-2026',votes:38,status:'approved'},
+        {id:'ELC-004',club:'Music Ensemble',position:'Vice President',candidate:'Josef Marquez',term:'SY 2025-2026',votes:27,status:'approved'},
+        {id:'ELC-005',club:'Community Outreach Corps',position:'President',candidate:'Hannah Grace Lim',term:'SY 2025-2026',votes:33,status:'pending'},
+        {id:'ELC-006',club:'Basketball Varsity',position:'Team Captain',candidate:'Rafael Santos',term:'SY 2025-2026',votes:19,status:'rejected'},
+      ],
+      events: [
+        {id:'EVT-001',club:'Robotics Society',title:'Line-following robot workshop',date:'2026-07-05',location:'STEM Lab 2'},
+        {id:'EVT-002',club:'Green Advocates',title:'Campus tree-planting drive',date:'2026-07-10',location:'East field'},
+        {id:'EVT-003',club:'Debate Circle',title:'Parliamentary debate clinic',date:'2026-07-08',location:'Room 204'},
+        {id:'EVT-004',club:'Music Ensemble',title:'Foundation day recital rehearsal',date:'2026-07-12',location:'Auditorium'},
+        {id:'EVT-005',club:'Community Outreach Corps',title:'Barangay feeding program',date:'2026-07-14',location:'Barangay hall'},
+      ],
+      attendance: [
+        {id:'ATT-001',event:'Line-following robot workshop',student:'Jian Carlo Ramos',status:'present',timeIn:'13:00',timeOut:'16:00'},
+        {id:'ATT-002',event:'Line-following robot workshop',student:'Nathaniel Uy',status:'present',timeIn:'13:05',timeOut:'16:00'},
+        {id:'ATT-003',event:'Campus tree-planting drive',student:'Alessa Marie Torres',status:'excused',timeIn:'-',timeOut:'-'},
+        {id:'ATT-004',event:'Campus tree-planting drive',student:'Kristine Joy Manalo',status:'present',timeIn:'07:30',timeOut:'11:00'},
+        {id:'ATT-005',event:'Parliamentary debate clinic',student:'Samantha Reyes',status:'present',timeIn:'14:00',timeOut:'17:00'},
+        {id:'ATT-006',event:'Parliamentary debate clinic',student:'Alessa Marie Torres',status:'absent',timeIn:'-',timeOut:'-'},
+        {id:'ATT-007',event:'Foundation day recital rehearsal',student:'Erika Villamor',status:'present',timeIn:'15:00',timeOut:'18:00'},
+        {id:'ATT-008',event:'Barangay feeding program',student:'Hannah Grace Lim',status:'present',timeIn:'08:00',timeOut:'12:00'},
+      ],
+      achievements: [
+        {id:'ACH-001',club:'Robotics Society',title:'Regional Robotics Cup - 2nd place',date:'2026-03-14',level:'Regional'},
+        {id:'ACH-002',club:'Debate Circle',title:'Inter-school Parliamentary Debate - Champion',date:'2026-02-08',level:'Inter-school'},
+        {id:'ACH-003',club:'Green Advocates',title:'Provincial Environmental Youth Award',date:'2026-04-22',level:'Regional'},
+        {id:'ACH-004',club:'Music Ensemble',title:'Division Choral Competition - 1st place',date:'2026-01-30',level:'Division'},
+        {id:'ACH-005',club:'Basketball Varsity',title:'District Meet - Champion',date:'2026-05-10',level:'Division'},
+      ],
+      budget: [
+        {id:'BUD-001',club:'Robotics Society',purpose:'Competition transportation and materials',amount:'15,000',requested:'2026-06-28',status:'pending'},
+        {id:'BUD-002',club:'Green Advocates',purpose:'Seedlings and gardening tools',amount:'4,500',requested:'2026-06-30',status:'approved'},
+        {id:'BUD-003',club:'Debate Circle',purpose:'Printed materials and registration fees',amount:'3,200',requested:'2026-07-01',status:'approved'},
+        {id:'BUD-004',club:'Music Ensemble',purpose:'Costume rental for recital',amount:'8,000',requested:'2026-07-03',status:'pending'},
+        {id:'BUD-005',club:'Basketball Varsity',purpose:'Uniforms and equipment',amount:'22,000',requested:'2026-06-15',status:'rejected'},
+        {id:'BUD-006',club:'Community Outreach Corps',purpose:'Food packs for feeding program',amount:'6,500',requested:'2026-07-06',status:'approved'},
+      ],
+      /* image field added — stores base64 data URL or null */
+      announcements: [
+        {id:'ANN-001',club:'Robotics Society',sender:'Mr. Reyes',content:'Workshop moved to 1:00 PM, STEM Lab 2.',date:'2026-07-01',image:null},
+        {id:'ANN-002',club:'All clubs',sender:'Student Affairs Office',content:'Budget requests for Q3 due by July 20.',date:'2026-07-02',image:null},
+        {id:'ANN-003',club:'Music Ensemble',sender:'Ms. Fernandez',content:'Costume fitting scheduled after rehearsal on July 12.',date:'2026-07-04',image:null},
+        {id:'ANN-004',club:'All clubs',sender:'Student Affairs Office',content:'Officer election results will be posted by July 25.',date:'2026-07-05',image:null},
+      ],
+      volunteer: [
+        {id:'VOL-001',student:'Alessa Marie Torres',club:'Green Advocates',activity:'Tree-planting drive',hours:3,date:'2026-07-10',verifiedBy:'Mr. Cruz'},
+        {id:'VOL-002',student:'Jian Carlo Ramos',club:'Robotics Society',activity:'Workshop facilitation',hours:4,date:'2026-07-05',verifiedBy:'Mr. Reyes'},
+        {id:'VOL-003',student:'Kristine Joy Manalo',club:'Green Advocates',activity:'Tree-planting drive',hours:3.5,date:'2026-07-10',verifiedBy:'Mr. Cruz'},
+        {id:'VOL-004',student:'Hannah Grace Lim',club:'Community Outreach Corps',activity:'Barangay feeding program',hours:5,date:'2026-07-14',verifiedBy:'Ms. Aquino'},
+        {id:'VOL-005',student:'Kristine Joy Manalo',club:'Community Outreach Corps',activity:'Barangay feeding program',hours:4,date:'2026-07-14',verifiedBy:'Ms. Aquino'},
+        {id:'VOL-006',student:'Samantha Reyes',club:'Debate Circle',activity:'Debate clinic documentation',hours:2,date:'2026-07-08',verifiedBy:'Ms. Santos'},
+        {id:'VOL-007',student:'Erika Villamor',club:'Music Ensemble',activity:'Recital rehearsal support',hours:3,date:'2026-07-12',verifiedBy:'Ms. Fernandez'},
+      ],
+      query: '',
+      reportPeriod: 'monthly',
+      reportMeta: { institution:'', preparedBy:'', preparedByTitle:'Co-Curricular Coordinator', notedBy:'', notedByTitle:'OSAS Head' },
+      reportSections: { summary:true, events:true, attendance:true, budget:true, volunteer:true, achievements:true },
+      reportGroupByCategory: false,
+      /* pending image for the announcement form */
+      _pendingAnnImg: null,
+    };
+
+    function nextId(prefix, list) { return `${prefix}-${String(list.length+1).padStart(3,'0')}`; }
+    function today() { return new Date().toISOString().slice(0,10); }
+    function clubNames() { return state.clubs.map(c=>c.name); }
+    function esc(str) {
+      return String(str??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[s]);
+    }
+
+    const STATUS_STYLES = {
+      active:'bg-emerald-50 text-emerald-700 border-emerald-200',
+      pending:'bg-amber-50 text-amber-700 border-amber-200',
+      approved:'bg-emerald-50 text-emerald-700 border-emerald-200',
+      rejected:'bg-rose-50 text-rose-700 border-rose-200',
+      inactive:'bg-slate-100 text-slate-600 border-slate-200',
+      present:'bg-emerald-50 text-emerald-700 border-emerald-200',
+      absent:'bg-rose-50 text-rose-700 border-rose-200',
+      excused:'bg-amber-50 text-amber-700 border-amber-200',
+    };
+    function pill(value) {
+      const cls = STATUS_STYLES[String(value).toLowerCase()]||'bg-slate-100 text-slate-600 border-slate-200';
+      return `<span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${cls}">${esc(value)}</span>`;
+    }
+
+    function table(columns, rows, emptyLabel) {
+      const head = columns.map(c=>`<th class="px-4 py-2.5 font-medium text-slate-500 whitespace-nowrap">${esc(c.label)}</th>`).join('');
+      let body;
+      if(!rows.length) {
+        body = `<tr><td colspan="${columns.length}" class="px-4 py-8 text-center text-slate-400">${esc(emptyLabel||'No records yet.')}</td></tr>`;
+      } else {
+        body = rows.map(row=>{
+          const cells = columns.map(c=>`<td class="px-4 py-2.5 text-slate-700 whitespace-nowrap">${c.render?c.render(row):esc(row[c.key])}</td>`).join('');
+          return `<tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50">${cells}</tr>`;
+        }).join('');
+      }
+      return `<div class="overflow-x-auto"><table class="w-full text-sm text-left">
+<thead><tr class="border-b border-slate-200 bg-slate-50">${head}</tr></thead>
+<tbody>${body}</tbody></table></div>`;
+    }
+
+    function field(labelText, inputHtml) {
+      return `<label class="flex flex-col gap-1 text-sm"><span class="text-slate-600 font-medium">${esc(labelText)}</span>${inputHtml}</label>`;
+    }
+    function textInput(id, labelText, opts={}) {
+      const type = opts.type||'text';
+      return field(labelText, `<input id="${id}" type="${type}" ${opts.step?`step="${opts.step}"`:''}${opts.min!==undefined?` min="${opts.min}"`:''}placeholder="${esc(opts.placeholder||'')}" class="border border-slate-300 rounded-md px-3 py-1.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400">`);
+    }
+    function selectInput(id, labelText, options) {
+      const opts = options.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('');
+      return field(labelText, `<select id="${id}" class="border border-slate-300 rounded-md px-3 py-1.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 bg-white">${opts}</select>`);
+    }
+    function submitButton(labelText) {
+      return `<button type="submit" class="inline-flex items-center gap-1.5 bg-slate-900 text-white text-sm font-medium px-3.5 py-2 rounded-md hover:bg-slate-700 transition-colors">${icon('plus','icon')} ${esc(labelText)}</button>`;
+    }
+    function val(id) { return document.getElementById(id).value.trim(); }
+
+    function sectionHeader(title, description) {
+      return `<div class="mb-6"><h1 class="text-xl font-medium text-slate-900">${esc(title)}</h1>${description?`<p class="text-sm text-slate-500 mt-1 max-w-2xl">${esc(description)}</p>`:''}</div>`;
+    }
+    function card(inner, extraClass) {
+      return `<div class="bg-white border border-slate-200 rounded-lg ${extraClass||''}">${inner}</div>`;
+    }
+
+    /* ---------- Navigation ---------- */
+    const NAV_ITEMS = [
+      {id:'dashboard',label:'Dashboard',icon:'dashboard'},
+      {id:'analytics',label:'Analytics',icon:'analytics'},
+      {id:'directory',label:'Club directory',icon:'directory'},
+      {id:'registration',label:'Club registration',icon:'registration'},
+      {id:'memberships',label:'Memberships',icon:'memberships'},
+      {id:'elections',label:'Officer elections',icon:'elections'},
+      {id:'events',label:'Events and attendance',icon:'events'},
+      {id:'achievements',label:'Achievement records',icon:'achievements'},
+      {id:'budget',label:'Budget requests',icon:'budget'},
+      {id:'announcements',label:'Inter-club communication',icon:'announcements'},
+      {id:'volunteer',label:'Volunteer hours',icon:'volunteer'},
+    ];
+
+    let currentTab = 'dashboard';
+
+    function renderNav() {
+      const nav = document.getElementById('nav');
+      nav.innerHTML = NAV_ITEMS.map(item=>`
+<button data-tab="${item.id}" class="nav-item w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-left text-slate-600 transition-colors ${item.id===currentTab?'active':''}">
+  ${icon(item.icon,'icon')}<span>${esc(item.label)}</span>
+</button>`).join('');
+      nav.querySelectorAll('[data-tab]').forEach(btn=>{
+        btn.addEventListener('click',()=>{ currentTab=btn.getAttribute('data-tab'); closeSidebar(); render(); });
+      });
+    }
+
+    function openSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('open'); }
+    function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('open'); }
+
+    /* ========== VIEW RENDERERS ========== */
+
+    function viewDashboard() {
+      const activeClubs = state.clubs.filter(c=>c.status==='active').length;
+      const pendingBudget = state.budget.filter(b=>b.status==='pending').length;
+      const totalHours = state.volunteer.reduce((sum,v)=>sum+Number(v.hours||0),0);
+      const stat = (label,value,iconName)=>card(`<div class="p-4 flex items-center justify-between"><div><p class="text-xs text-slate-500 font-medium">${esc(label)}</p><p class="text-2xl font-medium text-slate-900 mt-1">${esc(value)}</p></div><div class="w-9 h-9 rounded-md bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">${icon(iconName,'icon')}</div></div>`);
+      const clubsList = state.clubs.map(c=>`<li class="flex items-center justify-between text-sm"><span class="text-slate-700">${esc(c.name)}</span>${pill(c.status)}</li>`).join('');
+      const volList = state.volunteer.map(v=>`<li class="flex items-center justify-between text-sm"><span class="text-slate-700">${esc(v.student)}</span><span class="text-slate-500">${esc(v.hours)} hrs</span></li>`).join('');
+      return `${sectionHeader('Co-curricular overview','Summary of club activity, membership, and pending items across the co-curricular module.')}
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">${stat('Active clubs',activeClubs,'directory')}${stat('Registered members',state.members.length,'memberships')}${stat('Upcoming events',state.events.length,'events')}${stat('Pending budget requests',pendingBudget,'budget')}</div>
+<div class="grid lg:grid-cols-2 gap-6">
+${card(`<div class="p-5"><h2 class="text-sm font-medium text-slate-900 mb-1">Clubs by status</h2><p class="text-xs text-slate-500 mb-4">Current standing of all registered clubs.</p><ul class="space-y-2">${clubsList}</ul></div>`)}
+${card(`<div class="p-5"><h2 class="text-sm font-medium text-slate-900 mb-1">Volunteer hours logged</h2><p class="text-xs text-slate-500 mb-4">Total hours recorded: ${totalHours}</p><ul class="space-y-2">${volList}</ul><button id="go-volunteer" class="mt-4 text-sm font-medium text-slate-900 underline underline-offset-2 hover:text-slate-600">Open volunteer hour tracking</button></div>`)}
+</div>`;
+    }
+
+    function viewDirectory() {
+      const filtered = state.clubs.filter(c=>c.name.toLowerCase().includes(state.query.toLowerCase())||c.category.toLowerCase().includes(state.query.toLowerCase())||c.adviser.toLowerCase().includes(state.query.toLowerCase()));
+      return `${sectionHeader('Club directory','Browse all registered clubs, their category, and assigned adviser.')}
+${card(`<div class="p-4"><div class="relative max-w-xs"><span class="absolute left-2.5 top-2.5 text-slate-400">${icon('search','icon')}</span><input id="directory-search" value="${esc(state.query)}" placeholder="Search by name, category, or adviser" class="w-full pl-8 pr-3 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-400"></div></div>`,'mb-4')}
+${card(table([{key:'id',label:'Club ID'},{key:'name',label:'Name'},{key:'category',label:'Category'},{key:'adviser',label:'Adviser'},{key:'established',label:'Established'},{key:'status',label:'Status',render:r=>pill(r.status)}],filtered))}`;
+    }
+
+    function viewRegistration() {
+      return `${sectionHeader('Club registration','Register a new club for review and approval by the Student Affairs Office.')}
+${card(`<form id="registration-form" class="p-5 grid sm:grid-cols-2 gap-4">${textInput('reg-name','Club name',{placeholder:'e.g. Chess Federation'})}${selectInput('reg-category','Category',['Academic','Technology','Arts','Environment','Sports','Community Service'])}${textInput('reg-adviser','Adviser',{placeholder:'Adviser name'})}${textInput('reg-established','Date established',{type:'date'})}<div class="sm:col-span-2">${submitButton('Submit for approval')}</div></form>`,'mb-6')}
+${card(table([{key:'id',label:'Club ID'},{key:'name',label:'Name'},{key:'category',label:'Category'},{key:'adviser',label:'Adviser'},{key:'status',label:'Status',render:r=>pill(r.status)}],state.clubs))}`;
+    }
+
+    function viewMemberships() {
+      return `${sectionHeader('Student club memberships','Enroll a student into a club and track their membership status.')}
+${card(`<form id="membership-form" class="p-5 grid sm:grid-cols-2 gap-4">${selectInput('mem-club','Club',clubNames())}${textInput('mem-student','Student name',{placeholder:'Full name'})}${selectInput('mem-role','Role',['Member','Officer'])}<div class="sm:col-span-2">${submitButton('Add member')}</div></form>`,'mb-6')}
+${card(table([{key:'id',label:'Membership ID'},{key:'club',label:'Club'},{key:'student',label:'Student'},{key:'role',label:'Role'},{key:'joined',label:'Date joined'},{key:'status',label:'Status',render:r=>pill(r.status)}],state.members))}`;
+    }
+
+    function viewElections() {
+      return `${sectionHeader('Club officer elections','File a candidacy and confirm election results for club officer positions.')}
+${card(`<form id="election-form" class="p-5 grid sm:grid-cols-2 gap-4">${selectInput('elc-club','Club',clubNames())}${textInput('elc-position','Position',{placeholder:'e.g. Vice President'})}${textInput('elc-candidate','Candidate',{placeholder:'Full name'})}${textInput('elc-term','Term',{placeholder:'SY 2025-2026'})}<div class="sm:col-span-2">${submitButton('File candidacy')}</div></form>`,'mb-6')}
+${card(table([{key:'id',label:'Election ID'},{key:'club',label:'Club'},{key:'position',label:'Position'},{key:'candidate',label:'Candidate'},{key:'term',label:'Term'},{key:'votes',label:'Votes'},{key:'status',label:'Status',render:r=>pill(r.status)},{key:'actions',label:'Actions',render:r=>r.status==='pending'?`<div class="flex gap-2"><button data-decide="elections:${r.id}:approved" class="text-emerald-700 hover:text-emerald-900">${icon('check','icon')}</button><button data-decide="elections:${r.id}:rejected" class="text-rose-700 hover:text-rose-900">${icon('x','icon')}</button></div>`:`<span class="text-slate-400">-</span>`}],state.elections))}`;
+    }
+
+    function viewEvents() {
+      const eventTitles = state.events.map(e=>e.title);
+      return `${sectionHeader('Events and attendance','Log club activities and record attendance for each event.')}
+<div class="grid lg:grid-cols-2 gap-6 mb-6">
+${card(`<div class="p-5"><h2 class="text-sm font-medium text-slate-900 mb-4">Log an event</h2><form id="event-form" class="grid gap-4">${selectInput('evt-club','Club',clubNames())}${textInput('evt-title','Event title',{placeholder:'e.g. Coastal cleanup drive'})}${textInput('evt-date','Date',{type:'date'})}${textInput('evt-location','Location',{placeholder:'Venue'})}${submitButton('Add event')}</form></div>`)}
+${card(`<div class="p-5"><h2 class="text-sm font-medium text-slate-900 mb-4">Record attendance</h2><form id="attendance-form" class="grid gap-4">${selectInput('att-event','Event',eventTitles)}${textInput('att-student','Student name',{placeholder:'Full name'})}${selectInput('att-status','Status',['present','absent','excused'])}<div class="grid grid-cols-2 gap-4">${textInput('att-timein','Time in',{type:'time'})}${textInput('att-timeout','Time out',{type:'time'})}</div>${submitButton('Record attendance')}</form></div>`)}
+</div>
+<div class="grid gap-6">
+${card(`<div class="px-4 pt-4 pb-2 text-sm font-medium text-slate-900">Events</div>${table([{key:'id',label:'Event ID'},{key:'club',label:'Club'},{key:'title',label:'Title'},{key:'date',label:'Date'},{key:'location',label:'Location'}],state.events)}`)}
+${card(`<div class="px-4 pt-4 pb-2 text-sm font-medium text-slate-900">Attendance log</div>${table([{key:'id',label:'Record ID'},{key:'event',label:'Event'},{key:'student',label:'Student'},{key:'status',label:'Status',render:r=>pill(r.status)},{key:'timeIn',label:'Time in'},{key:'timeOut',label:'Time out'}],state.attendance)}`)}
+</div>`;
+    }
+
+    function viewAchievements() {
+      return `${sectionHeader('Club achievement records','Document awards, recognitions, and milestones earned by clubs.')}
+${card(`<form id="achievement-form" class="p-5 grid sm:grid-cols-2 gap-4">${selectInput('ach-club','Club',clubNames())}${textInput('ach-title','Achievement title',{placeholder:'e.g. Regional Science Fair - 1st place'})}${textInput('ach-date','Date awarded',{type:'date'})}${selectInput('ach-level','Level',['School','Division','Regional','National'])}<div class="sm:col-span-2">${submitButton('Add achievement')}</div></form>`,'mb-6')}
+${card(table([{key:'id',label:'Record ID'},{key:'club',label:'Club'},{key:'title',label:'Title'},{key:'date',label:'Date'},{key:'level',label:'Level'}],state.achievements))}`;
+    }
+
+    function viewBudget() {
+      return `${sectionHeader('Budget requests','Submit and review funding requests for club activities and materials.')}
+${card(`<form id="budget-form" class="p-5 grid sm:grid-cols-2 gap-4">${selectInput('bud-club','Club',clubNames())}${textInput('bud-amount','Amount requested',{placeholder:'e.g. 5,000'})}<div class="sm:col-span-2">${textInput('bud-purpose','Purpose',{placeholder:'What is this budget for'})}</div><div class="sm:col-span-2">${submitButton('Submit request')}</div></form>`,'mb-6')}
+${card(table([{key:'id',label:'Request ID'},{key:'club',label:'Club'},{key:'purpose',label:'Purpose'},{key:'amount',label:'Amount (PHP)'},{key:'requested',label:'Date requested'},{key:'status',label:'Status',render:r=>pill(r.status)},{key:'actions',label:'Actions',render:r=>r.status==='pending'?`<div class="flex gap-2"><button data-decide="budget:${r.id}:approved" class="text-emerald-700 hover:text-emerald-900">${icon('check','icon')}</button><button data-decide="budget:${r.id}:rejected" class="text-rose-700 hover:text-rose-900">${icon('x','icon')}</button></div>`:`<span class="text-slate-400">-</span>`}],state.budget))}`;
+    }
+
+    /* ====== ANNOUNCEMENTS — with optional image ====== */
+    function viewAnnouncements() {
+      const options = ['All clubs',...clubNames()];
+
+      /* build announcement cards */
+      const list = state.announcements.map(a=>{
+        const imgHtml = a.image
+          ? `<img src="${a.image}" alt="Announcement image" class="ann-card-img">`
+          : '';
+        const contentHtml = a.content
+          ? `<p class="text-sm text-slate-700">${esc(a.content)}</p>`
+          : '';
+        return `<div class="bg-white border border-slate-200 rounded-lg p-4">
+  <div class="flex items-center justify-between mb-1">
+    <span class="text-sm font-medium text-slate-900">${esc(a.club)}</span>
+    <span class="text-xs text-slate-400">${esc(a.date)}</span>
+  </div>
+  ${contentHtml}
+  ${imgHtml}
+  <p class="text-xs text-slate-400 mt-1.5">Posted by ${esc(a.sender)}</p>
+</div>`;
+      }).join('');
+
+      /* image preview area (populated dynamically after render) */
+      const imgPreviewAreaId = 'ann-img-preview-area';
+
+      return `${sectionHeader('Inter-club communication','Post announcements to a specific club or to all clubs at once. You may attach an optional image.')}
+${card(`<form id="announcement-form" class="p-5 grid sm:grid-cols-2 gap-4">
+  ${selectInput('ann-club','Recipient',options)}
+  ${textInput('ann-sender','Sender',{placeholder:'Your name or office'})}
+  <div class="sm:col-span-2">${textInput('ann-content','Message (optional if attaching an image)',{placeholder:'Announcement content'})}</div>
+  <div class="sm:col-span-2">
+    <label class="flex flex-col gap-1 text-sm">
+      <span class="text-slate-600 font-medium">Attach image <span class="text-slate-400 font-normal">(optional)</span></span>
+      <label for="ann-img" class="img-upload-label">
+        ${icon('image','icon')}
+        <span id="ann-img-label-text">Choose image or drag here</span>
+        <input id="ann-img" type="file" accept="image/*" class="sr-only">
+      </label>
+      <div id="${imgPreviewAreaId}"></div>
+    </label>
+  </div>
+  <div class="sm:col-span-2">${submitButton('Post announcement')}</div>
+</form>`,'mb-6')}
+<div class="space-y-3">${list||`<p class="text-sm text-slate-400">No announcements yet.</p>`}</div>`;
+    }
+
+    function viewVolunteer() {
+      const totals={};
+      state.volunteer.forEach(v=>{ totals[v.student]=(totals[v.student]||0)+Number(v.hours||0); });
+      const totalsList = Object.entries(totals).map(([student,hrs])=>`<li class="flex items-center justify-between text-sm"><span class="text-slate-700">${esc(student)}</span><span class="font-medium text-slate-900">${hrs} hrs</span></li>`).join('')||`<p class="text-sm text-slate-400">No records yet.</p>`;
+      return `${sectionHeader('Volunteer hour tracking','Log volunteer hours rendered by students during club-organized activities.')}
+${card(`<form id="volunteer-form" class="p-5 grid sm:grid-cols-2 gap-4">${textInput('vol-student','Student name',{placeholder:'Full name'})}${selectInput('vol-club','Club',clubNames())}${textInput('vol-activity','Activity',{placeholder:'e.g. Tree-planting drive'})}${textInput('vol-hours','Hours',{type:'number',min:'0',step:'0.5'})}${textInput('vol-verified','Verified by',{placeholder:'Adviser name'})}<div class="sm:col-span-2">${submitButton('Log hours')}</div></form>`,'mb-6')}
+<div class="grid lg:grid-cols-3 gap-6">
+${card(table([{key:'id',label:'Record ID'},{key:'student',label:'Student'},{key:'club',label:'Club'},{key:'activity',label:'Activity'},{key:'hours',label:'Hours'},{key:'date',label:'Date'},{key:'verifiedBy',label:'Verified by'}],state.volunteer),'lg:col-span-2')}
+${card(`<div class="p-5"><h2 class="text-sm font-medium text-slate-900 mb-3">Total hours per student</h2><ul class="space-y-2">${totalsList}</ul></div>`)}
+</div>`;
+    }
+
+    /* ====== ANALYTICS ====== */
+    const CHART_COLORS = {slate:'#64748b',emerald:'#10b981',amber:'#f59e0b',rose:'#f43f5e',blue:'#3b82f6',violet:'#8b5cf6',teal:'#14b8a6',orange:'#fb923c'};
+    const CHART_ACCENTS = {
+      blue:{bg:'bg-blue-50',text:'text-blue-600',dot:'#3b82f6'},
+      violet:{bg:'bg-violet-50',text:'text-violet-600',dot:'#8b5cf6'},
+      emerald:{bg:'bg-emerald-50',text:'text-emerald-600',dot:'#10b981'},
+      amber:{bg:'bg-amber-50',text:'text-amber-600',dot:'#f59e0b'},
+      teal:{bg:'bg-teal-50',text:'text-teal-600',dot:'#14b8a6'},
+      rose:{bg:'bg-rose-50',text:'text-rose-600',dot:'#f43f5e'},
+    };
+
+    function chartCard(title, description, canvasId, iconName, accent, height) {
+      const a = CHART_ACCENTS[accent]||CHART_ACCENTS.blue;
+      return `<div class="bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md transition-shadow p-4">
+<div class="flex items-center gap-2 mb-0.5"><div class="w-7 h-7 rounded-md ${a.bg} ${a.text} flex items-center justify-center shrink-0">${icon(iconName,'icon-sm')}</div><h2 class="text-xs font-medium text-slate-900 leading-tight">${esc(title)}</h2></div>
+${description?`<p class="text-[10.5px] text-slate-500 mt-0.5 mb-2 ml-9 leading-snug">${esc(description)}</p>`:`<div class="mb-2"></div>`}
+<div style="height:${height||170}px"><canvas id="${canvasId}"></canvas></div></div>`;
+    }
+
+    function analyticsStat(label,value,iconName,accent){
+      const a=CHART_ACCENTS[accent]||CHART_ACCENTS.blue;
+      return `<div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex items-center gap-3"><div class="w-10 h-10 rounded-lg ${a.bg} ${a.text} flex items-center justify-center shrink-0">${icon(iconName,'icon')}</div><div class="min-w-0"><p class="text-lg font-semibold text-slate-900 leading-tight">${esc(value)}</p><p class="text-xs text-slate-500 truncate">${esc(label)}</p></div></div>`;
+    }
+
+    function periodTabButton(id, label) {
+      const active = state.reportPeriod===id;
+      return `<button data-period="${id}" class="px-3.5 py-1.5 text-sm font-medium rounded-md border transition-colors ${active?'bg-slate-900 text-white border-slate-900':'bg-white text-slate-600 border-slate-300 hover:bg-slate-50'}">${esc(label)}</button>`;
+    }
+
+    function viewAnalytics() {
+      const totalVolunteerHours = state.volunteer.reduce((sum,v)=>sum+Number(v.hours||0),0);
+      const approvedBudgetTotal = state.budget.filter(b=>b.status==='approved').reduce((sum,b)=>sum+(Number(String(b.amount).replace(/,/g,''))||0),0);
+      const kpiStrip = `<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+${analyticsStat('Total events logged',state.events.length,'events','blue')}
+${analyticsStat('Volunteer hours logged',totalVolunteerHours,'volunteer','teal')}
+${analyticsStat('Approved budget (PHP)',approvedBudgetTotal.toLocaleString('en-US'),'budget','amber')}
+${analyticsStat('Achievements recorded',state.achievements.length,'achievements','violet')}
+</div>`;
+      const chartsGrid = `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
+${chartCard('Clubs by category','Distribution of registered clubs across categories.','chart-category','directory','blue')}
+${chartCard('Members per club','Total registered members in each club.','chart-members','memberships','violet')}
+${chartCard('Budget requests by status','Count of budget requests grouped by approval status.','chart-budget','budget','amber')}
+${chartCard('Attendance breakdown','Attendance status recorded across logged events.','chart-attendance','events','emerald')}
+${chartCard('Volunteer hours per student','Total verified volunteer hours logged per student.','chart-volunteer','volunteer','teal')}
+${chartCard('Officer election status','Filed candidacies grouped by review status.','chart-elections','elections','rose')}
+</div>`;
+
+      /* ---- REPORT SECTION — preview is now full height, scrollable ---- */
+      const reportSection = card(`<div class="p-4 sm:p-5">
+  <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+    <div>
+      <h2 class="text-sm font-medium text-slate-900">Period report</h2>
+      <p class="text-xs text-slate-500 mt-0.5">Generate a weekly, monthly, or yearly activity report ready for printing or filing.</p>
+    </div>
+    <div class="flex gap-2" id="period-tabs">
+      ${periodTabButton('weekly','Weekly')}
+      ${periodTabButton('monthly','Monthly')}
+      ${periodTabButton('yearly','Yearly')}
+    </div>
+  </div>
+  <div class="grid sm:grid-cols-3 gap-3 mb-3">
+    ${textInput('rpt-institution','Institution name (optional)',{placeholder:'e.g. Your School Name'})}
+    ${textInput('rpt-prepared-by','Prepared by',{placeholder:'Adviser / coordinator name'})}
+    ${textInput('rpt-noted-by','Noted by',{placeholder:'OSAS head / principal name'})}
+  </div>
+  <div class="flex items-center gap-2 mb-3">
+    <input id="rpt-group-category" type="checkbox" ${state.reportGroupByCategory?'checked':''} class="rounded border-slate-300 text-slate-900 focus:ring-slate-400">
+    <label for="rpt-group-category" class="text-xs text-slate-600">Group events, budget, and achievements by club category (e.g. Technology, Academic, Arts)</label>
+  </div>
+  <div class="mb-4 pb-4 border-b border-slate-100">
+    <p class="text-xs font-medium text-slate-700 mb-2">Include in report <span class="text-slate-400 font-normal">(check only what you want to print or download — e.g. Attendance only)</span></p>
+    <div class="flex flex-wrap gap-x-4 gap-y-1.5" id="rpt-sections">
+      ${REPORT_SECTION_DEFS.map(s=>`<label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+        <input type="checkbox" data-report-section="${s.key}" ${state.reportSections[s.key]?'checked':''} class="rounded border-slate-300 text-slate-900 focus:ring-slate-400">
+        ${esc(s.label)}
+      </label>`).join('')}
+      <button type="button" id="rpt-sections-all" class="text-xs text-slate-500 underline underline-offset-2 hover:text-slate-800">Select all</button>
+      <button type="button" id="rpt-sections-none" class="text-xs text-slate-500 underline underline-offset-2 hover:text-slate-800">Clear all</button>
+    </div>
+  </div>
+  <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+    <p class="text-xs text-slate-400">Preview — full report shown below</p>
+    <div class="flex flex-wrap gap-2">
+      <button id="btn-download-pdf" type="button" class="inline-flex items-center gap-1.5 bg-slate-900 text-white text-xs font-medium px-3 py-1.5 rounded-md hover:bg-slate-700 transition-colors">${icon('download','icon')} PDF / Print</button>
+      <button id="btn-download-word" type="button" class="inline-flex items-center gap-1.5 bg-white border border-slate-300 text-slate-700 text-xs font-medium px-3 py-1.5 rounded-md hover:bg-slate-50 transition-colors">${icon('download','icon')} Word</button>
+    </div>
+  </div>
+  <!-- No max-height cap — preview shows the full report; outer page scroll handles overflow -->
+  <div class="report-preview-shell border border-slate-200 rounded-lg bg-slate-50 p-3">
+    <div class="bg-white border border-slate-200 rounded-md p-4 shadow-sm" id="report-preview">
+      ${buildReportHTML(state.reportPeriod)}
+    </div>
+  </div>
+</div>`);
+
+      return `${sectionHeader('Analytics','Visual summary of club activity, membership, budget, attendance, and volunteer data.')}${kpiStrip}${chartsGrid}${reportSection}`;
+    }
+
+    /* ---------- Chart helpers ---------- */
+    const chartInstances={};
+    function destroyChart(id){ if(chartInstances[id]){chartInstances[id].destroy();delete chartInstances[id];} }
+    let chartDefaultsSet=false;
+    function setChartDefaults(){
+      if(chartDefaultsSet||typeof Chart==='undefined')return;
+      Chart.defaults.font.family="'Inter',system-ui,-apple-system,sans-serif";
+      Chart.defaults.font.size=11;Chart.defaults.color='#64748b';
+      Chart.defaults.plugins.tooltip.backgroundColor='#0f172a';
+      Chart.defaults.plugins.tooltip.titleColor='#f8fafc';
+      Chart.defaults.plugins.tooltip.bodyColor='#e2e8f0';
+      Chart.defaults.plugins.tooltip.padding=10;Chart.defaults.plugins.tooltip.cornerRadius=8;
+      Chart.defaults.plugins.tooltip.displayColors=false;
+      Chart.defaults.plugins.tooltip.titleFont={weight:'600',size:12};
+      Chart.defaults.plugins.tooltip.bodyFont={size:11.5};
+      chartDefaultsSet=true;
+    }
+    function baseChartOptions(extra){ return Object.assign({responsive:true,maintainAspectRatio:false,layout:{padding:{top:2}},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',boxWidth:5,boxHeight:5,padding:8,font:{size:9},color:'#475569'}}}},extra||{}); }
+    function niceScale(axis,extra){ return Object.assign({beginAtZero:true,ticks:{precision:0,color:'#94a3b8',font:{size:9}},grid:{color:'#f1f5f9',drawTicks:false,display:axis==='y'},border:{display:false}},extra||{}); }
+    function categoryScale(extra){ return Object.assign({ticks:{color:'#64748b',font:{size:9}},grid:{display:false,drawTicks:false},border:{display:false}},extra||{}); }
+    function countBy(list,key){ const map={}; list.forEach(item=>{ const k=item[key]; map[k]=(map[k]||0)+1; }); return map; }
+
+    function renderAnalyticsCharts(){
+      if(typeof Chart==='undefined')return;
+      setChartDefaults();
+      ['chart-category','chart-members','chart-budget','chart-attendance','chart-volunteer','chart-elections'].forEach(destroyChart);
+      const doughnutOptions=()=>baseChartOptions({cutout:'68%',radius:'85%',plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',boxWidth:5,boxHeight:5,padding:7,font:{size:9},color:'#475569'}}}});
+      const doughnutDataset=data=>Object.assign({borderWidth:3,borderColor:'#ffffff',hoverOffset:6,spacing:2},data);
+
+      const categoryCounts=countBy(state.clubs,'category');
+      chartInstances['chart-category']=new Chart(document.getElementById('chart-category'),{type:'doughnut',data:{labels:Object.keys(categoryCounts),datasets:[doughnutDataset({data:Object.values(categoryCounts),backgroundColor:[CHART_COLORS.blue,CHART_COLORS.teal,CHART_COLORS.violet,CHART_COLORS.orange,CHART_COLORS.amber,CHART_COLORS.rose]})]},options:doughnutOptions()});
+
+      const memberCounts=countBy(state.members,'club');
+      const memberEntries=Object.entries(memberCounts).sort((a,b)=>b[1]-a[1]);
+      chartInstances['chart-members']=new Chart(document.getElementById('chart-members'),{type:'bar',data:{labels:memberEntries.map(([club])=>club),datasets:[{label:'Members',data:memberEntries.map(([,count])=>count),backgroundColor:CHART_COLORS.violet,borderRadius:6,borderSkipped:false,maxBarThickness:18}]},options:baseChartOptions({indexAxis:'y',plugins:{legend:{display:false}},scales:{x:niceScale('x'),y:categoryScale()}})});
+
+      const budgetCounts=countBy(state.budget,'status');
+      chartInstances['chart-budget']=new Chart(document.getElementById('chart-budget'),{type:'doughnut',data:{labels:Object.keys(budgetCounts),datasets:[doughnutDataset({data:Object.values(budgetCounts),backgroundColor:Object.keys(budgetCounts).map(s=>({pending:CHART_COLORS.amber,approved:CHART_COLORS.emerald,rejected:CHART_COLORS.rose})[s]||CHART_COLORS.slate)})]},options:doughnutOptions()});
+
+      const attendanceCounts=countBy(state.attendance,'status');
+      chartInstances['chart-attendance']=new Chart(document.getElementById('chart-attendance'),{type:'doughnut',data:{labels:Object.keys(attendanceCounts),datasets:[doughnutDataset({data:Object.values(attendanceCounts),backgroundColor:Object.keys(attendanceCounts).map(s=>({present:CHART_COLORS.emerald,absent:CHART_COLORS.rose,excused:CHART_COLORS.amber})[s]||CHART_COLORS.slate)})]},options:doughnutOptions()});
+
+      const volunteerTotals={};
+      state.volunteer.forEach(v=>{ volunteerTotals[v.student]=(volunteerTotals[v.student]||0)+Number(v.hours||0); });
+      const volunteerEntries=Object.entries(volunteerTotals).sort((a,b)=>b[1]-a[1]);
+      chartInstances['chart-volunteer']=new Chart(document.getElementById('chart-volunteer'),{type:'bar',data:{labels:volunteerEntries.map(([student])=>student),datasets:[{label:'Hours',data:volunteerEntries.map(([,hrs])=>hrs),backgroundColor:CHART_COLORS.teal,borderRadius:6,borderSkipped:false,maxBarThickness:18}]},options:baseChartOptions({indexAxis:'y',plugins:{legend:{display:false}},scales:{x:niceScale('x'),y:categoryScale()}})});
+
+      const electionCounts=countBy(state.elections,'status');
+      chartInstances['chart-elections']=new Chart(document.getElementById('chart-elections'),{type:'bar',data:{labels:Object.keys(electionCounts),datasets:[{label:'Candidacies',data:Object.values(electionCounts),backgroundColor:Object.keys(electionCounts).map(s=>({pending:CHART_COLORS.amber,approved:CHART_COLORS.emerald,rejected:CHART_COLORS.rose})[s]||CHART_COLORS.slate),borderRadius:6,borderSkipped:false,maxBarThickness:46}]},options:baseChartOptions({plugins:{legend:{display:false}},scales:{y:niceScale('y'),x:categoryScale()}})});
+    }
+
+    /* ---------- Report builder ---------- */
+    const REPORT_SECTION_DEFS = [
+      {key:'summary',label:'Executive Summary'},
+      {key:'events',label:'Events Held'},
+      {key:'attendance',label:'Attendance'},
+      {key:'budget',label:'Budget Requests'},
+      {key:'volunteer',label:'Volunteer Service Hours'},
+      {key:'achievements',label:'Achievements'},
+    ];
+    const ROMAN_NUMERALS = ['I','II','III','IV','V','VI','VII','VIII'];
+    const PERIOD_LABELS={weekly:'Weekly Report',monthly:'Monthly Report',yearly:'Annual Report'};
+    function getPeriodRange(period){
+      const now=new Date(); let start,end;
+      if(period==='weekly'){end=new Date(now);start=new Date(now);start.setDate(start.getDate()-6);}
+      else if(period==='yearly'){start=new Date(now.getFullYear(),0,1);end=new Date(now.getFullYear(),11,31);}
+      else{start=new Date(now.getFullYear(),now.getMonth(),1);end=new Date(now.getFullYear(),now.getMonth()+1,0);}
+      start.setHours(0,0,0,0);end.setHours(23,59,59,999);
+      return{start,end,generatedAt:now};
+    }
+    function inRange(dateStr,start,end){const d=new Date(dateStr);if(isNaN(d))return false;return d>=start&&d<=end;}
+    function fmtLong(d){return d.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});}
+    function fmtShort(dateStr){const d=new Date(dateStr);if(isNaN(d))return esc(dateStr);return d.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});}
+    function peso(amountStr){const n=Number(String(amountStr).replace(/,/g,''))||0;return 'PHP '+n.toLocaleString('en-US');}
+
+    function reportTable(headers,rows){
+      const head=headers.map(h=>`<th>${esc(h)}</th>`).join('');
+      const body=rows.length?rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join(''):`<tr><td colspan="${headers.length}" style="text-align:center;color:#777;">No records for this period.</td></tr>`;
+      return `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+    }
+
+    /* ---------- Category grouping helpers for the report ---------- */
+    function clubCategory(clubName){
+      const c = state.clubs.find(cl=>cl.name===clubName);
+      return c ? c.category : 'Uncategorized';
+    }
+    function eventClubMap(){
+      const map={};
+      state.events.forEach(e=>{ map[e.title]=e.club; });
+      return map;
+    }
+    function groupBy(list, keyFn){
+      const map={};
+      list.forEach(item=>{
+        const k=keyFn(item)||'Uncategorized';
+        (map[k]=map[k]||[]).push(item);
+      });
+      return map;
+    }
+    function sortedCategoryKeys(map){ return Object.keys(map).sort((a,b)=>a.localeCompare(b)); }
+
+    function categoryOverviewTable(map, extraColLabel, extraFn){
+      const keys=sortedCategoryKeys(map);
+      if(!keys.length) return '';
+      const headers=extraColLabel?['Category','Count',extraColLabel]:['Category','Count'];
+      const rows=keys.map(cat=>{
+        const items=map[cat];
+        return extraFn?[esc(cat),items.length,extraFn(items)]:[esc(cat),items.length];
+      });
+      return reportTable(headers,rows);
+    }
+
+    function buildEventsSection(events, groupByCategory){
+      if(!groupByCategory) return reportTable(['Date','Club','Event','Location'],events.map(e=>[fmtShort(e.date),esc(e.club),esc(e.title),esc(e.location)]));
+      const groups=groupBy(events, e=>clubCategory(e.club));
+      const keys=sortedCategoryKeys(groups);
+      if(!keys.length) return `<p style="font-size:12.5px;color:#777;">No events for this period.</p>`;
+      const overview=categoryOverviewTable(groups,'Events');
+      const details=keys.map(cat=>{
+        const rows=groups[cat];
+        const tbl=reportTable(['Date','Club','Event','Location'],rows.map(e=>[fmtShort(e.date),esc(e.club),esc(e.title),esc(e.location)]));
+        return `<p style="font-weight:700;font-size:12.5px;margin:12px 0 4px;">${esc(cat)} (${rows.length} event${rows.length===1?'':'s'})</p>${tbl}`;
+      }).join('');
+      return `<p style="font-size:11px;color:#555;margin:0 0 4px;">Category overview:</p>${overview}${details}`;
+    }
+
+    function buildBudgetSection(budget, groupByCategory){
+      if(!groupByCategory) return reportTable(['Date Requested','Club','Purpose','Amount','Status'],budget.map(b=>[fmtShort(b.requested),esc(b.club),esc(b.purpose),peso(b.amount),esc(b.status)]));
+      const groups=groupBy(budget, b=>clubCategory(b.club));
+      const keys=sortedCategoryKeys(groups);
+      if(!keys.length) return `<p style="font-size:12.5px;color:#777;">No budget requests for this period.</p>`;
+      const amountOf=b=>Number(String(b.amount).replace(/,/g,''))||0;
+      const overview=categoryOverviewTable(groups,'Total amount',items=>peso(items.reduce((s,b)=>s+amountOf(b),0)));
+      const details=keys.map(cat=>{
+        const rows=groups[cat];
+        const subtotal=rows.reduce((s,b)=>s+amountOf(b),0);
+        const tbl=reportTable(['Date Requested','Club','Purpose','Amount','Status'],rows.map(b=>[fmtShort(b.requested),esc(b.club),esc(b.purpose),peso(b.amount),esc(b.status)]));
+        return `<p style="font-weight:700;font-size:12.5px;margin:12px 0 4px;">${esc(cat)} — Subtotal: ${peso(subtotal)}</p>${tbl}`;
+      }).join('');
+      return `<p style="font-size:11px;color:#555;margin:0 0 4px;">Category overview:</p>${overview}${details}`;
+    }
+
+    function buildAttendanceSection(attendance, groupByCategory){
+      if(!groupByCategory) return reportTable(['Event','Student','Status','Time In','Time Out'],attendance.map(a=>[esc(a.event),esc(a.student),esc(a.status),esc(a.timeIn),esc(a.timeOut)]));
+      const evMap=eventClubMap();
+      const groups=groupBy(attendance, a=>clubCategory(evMap[a.event]||''));
+      const keys=sortedCategoryKeys(groups);
+      if(!keys.length) return `<p style="font-size:12.5px;color:#777;">No attendance records for this period.</p>`;
+      const details=keys.map(cat=>{
+        const rows=groups[cat];
+        const counts=countBy(rows,'status');
+        const tbl=reportTable(['Event','Student','Status','Time In','Time Out'],rows.map(a=>[esc(a.event),esc(a.student),esc(a.status),esc(a.timeIn),esc(a.timeOut)]));
+        return `<p style="font-weight:700;font-size:12.5px;margin:12px 0 4px;">${esc(cat)} — Present: ${counts.present||0}, Absent: ${counts.absent||0}, Excused: ${counts.excused||0}</p>${tbl}`;
+      }).join('');
+      return details;
+    }
+
+    function buildAchievementsSection(achievements, groupByCategory){
+      if(!groupByCategory) return reportTable(['Date','Club','Title','Level'],achievements.map(a=>[fmtShort(a.date),esc(a.club),esc(a.title),esc(a.level)]));
+      const groups=groupBy(achievements, a=>clubCategory(a.club));
+      const keys=sortedCategoryKeys(groups);
+      if(!keys.length) return `<p style="font-size:12.5px;color:#777;">No achievements for this period.</p>`;
+      const overview=categoryOverviewTable(groups,'Achievements');
+      const details=keys.map(cat=>{
+        const rows=groups[cat];
+        const tbl=reportTable(['Date','Club','Title','Level'],rows.map(a=>[fmtShort(a.date),esc(a.club),esc(a.title),esc(a.level)]));
+        return `<p style="font-weight:700;font-size:12.5px;margin:12px 0 4px;">${esc(cat)} (${rows.length})</p>${tbl}`;
+      }).join('');
+      return `<p style="font-size:11px;color:#555;margin:0 0 4px;">Category overview:</p>${overview}${details}`;
+    }
+
+    function collectPeriodData(period){
+      const{start,end,generatedAt}=getPeriodRange(period);
+      const events=state.events.filter(e=>inRange(e.date,start,end));
+      const eventTitleSet=new Set(events.map(e=>e.title));
+      const attendance=state.attendance.filter(a=>eventTitleSet.has(a.event));
+      const budget=state.budget.filter(b=>inRange(b.requested,start,end));
+      const volunteer=state.volunteer.filter(v=>inRange(v.date,start,end));
+      const achievements=state.achievements.filter(a=>inRange(a.date,start,end));
+      const attendanceCounts=countBy(attendance,'status');
+      const budgetTotal=budget.reduce((sum,b)=>sum+(Number(String(b.amount).replace(/,/g,''))||0),0);
+      const volunteerTotal=volunteer.reduce((sum,v)=>sum+Number(v.hours||0),0);
+      return{start,end,generatedAt,events,attendance,budget,volunteer,achievements,attendanceCounts,budgetTotal,volunteerTotal};
+    }
+
+    function buildReportHTML(period){
+      const d=collectPeriodData(period);
+      const meta=state.reportMeta;
+      const activeClubs=state.clubs.filter(c=>c.status==='active').length;
+      const groupByCategory = state.reportGroupByCategory;
+      const sections = state.reportSections;
+
+      /* Build only the sections that are checked. Numbered dynamically so it reads
+         cleanly whether it's the full report or just one part (e.g. Attendance only). */
+      const sectionHtmlByKey = {
+        summary: ()=>`<h2>__NUM__. Executive Summary</h2><p>This report covers co-curricular club activity from <strong>${fmtLong(d.start)}</strong> to <strong>${fmtLong(d.end)}</strong>. As of this period, the program has ${activeClubs} active club(s) with ${state.members.length} registered member(s) across all organizations. Within the covered period, ${d.events.length} event(s) were held, ${d.volunteer.length} volunteer service entr${d.volunteer.length===1?'y was':'ies were'} logged totaling ${d.volunteerTotal} hour(s), ${d.budget.length} budget request(s) were filed amounting to ${peso(d.budgetTotal)}, and ${d.achievements.length} achievement(s) were recorded.</p>`,
+        events: ()=>`<h2>__NUM__. Events Held${groupByCategory?' (by Category)':''}</h2>${buildEventsSection(d.events, groupByCategory)}`,
+        attendance: ()=>`<h2>__NUM__. Attendance${groupByCategory?' (by Category)':''}</h2><p>Of ${d.attendance.length} attendance record(s) logged against these events: ${d.attendanceCounts.present||0} present, ${d.attendanceCounts.absent||0} absent, ${d.attendanceCounts.excused||0} excused.</p>${buildAttendanceSection(d.attendance, groupByCategory)}`,
+        budget: ()=>`<h2>__NUM__. Budget Requests${groupByCategory?' (by Category)':''}</h2>${buildBudgetSection(d.budget, groupByCategory)}`,
+        volunteer: ()=>`<h2>__NUM__. Volunteer Service Hours</h2>${reportTable(['Date','Student','Club','Activity','Hours','Verified By'],d.volunteer.map(v=>[fmtShort(v.date),esc(v.student),esc(v.club),esc(v.activity),esc(v.hours),esc(v.verifiedBy)]))}`,
+        achievements: ()=>`<h2>__NUM__. Achievements${groupByCategory?' (by Category)':''}</h2>${buildAchievementsSection(d.achievements, groupByCategory)}`,
+      };
+      const includedKeys = REPORT_SECTION_DEFS.filter(s=>sections[s.key]).map(s=>s.key);
+      const bodyHtml = includedKeys.length
+        ? includedKeys.map((key,i)=>sectionHtmlByKey[key]().replace('__NUM__',ROMAN_NUMERALS[i]||String(i+1))).join('')
+        : `<p style="color:#777;text-align:center;padding:24px 0;">No sections selected. Check at least one section above to build the report.</p>`;
+
+      const institutionLine=meta.institution?`<p style="text-align:center;font-size:12.5px;margin:0 0 2px;">${esc(meta.institution)}</p>`:'';
+      const scopeNote = includedKeys.length && includedKeys.length<REPORT_SECTION_DEFS.length
+        ? `<p style="text-align:center;font-size:10.5px;color:#777;margin:0 0 10px;">Showing: ${includedKeys.map(k=>esc(REPORT_SECTION_DEFS.find(s=>s.key===k).label)).join(', ')}</p>`
+        : '';
+      return `<div class="report-doc">
+${institutionLine}
+<h1>Co-Curricular Activities Report</h1>
+<p style="text-align:center;margin:0 0 4px;font-size:12.5px;">${esc(PERIOD_LABELS[period])} &nbsp;&middot;&nbsp; ${fmtLong(d.start)} to ${fmtLong(d.end)}</p>
+${scopeNote}
+<p style="text-align:right;font-size:11px;color:#555;margin:0 0 14px;">Generated ${fmtLong(d.generatedAt)}</p>
+${bodyHtml}
+<div style="display:flex;justify-content:space-between;margin-top:56px;">
+  <div style="width:45%;text-align:center;"><div style="border-top:1px solid #1a1a1a;padding-top:4px;font-size:12.5px;">${esc(meta.preparedBy)||'&nbsp;'}<br><span style="font-size:11px;color:#555;">${esc(meta.preparedByTitle)}</span></div></div>
+  <div style="width:45%;text-align:center;"><div style="border-top:1px solid #1a1a1a;padding-top:4px;font-size:12.5px;">${esc(meta.notedBy)||'&nbsp;'}<br><span style="font-size:11px;color:#555;">${esc(meta.notedByTitle)}</span></div></div>
+</div></div>`;
+    }
+
+    function syncReportMetaFromInputs(){
+      const byId=id=>document.getElementById(id);
+      if(!byId('rpt-institution'))return;
+      state.reportMeta.institution=val('rpt-institution');
+      state.reportMeta.preparedBy=val('rpt-prepared-by');
+      state.reportMeta.notedBy=val('rpt-noted-by');
+    }
+    function printReport(period){
+      syncReportMetaFromInputs();
+      const area=document.getElementById('report-print-area');
+      area.innerHTML=buildReportHTML(period);
+      document.body.classList.add('printing-report');
+      window.print();
+    }
+    window.addEventListener('afterprint',()=>{
+      document.body.classList.remove('printing-report');
+      document.getElementById('report-print-area').innerHTML='';
+    });
+    function downloadWordReport(period){
+      syncReportMetaFromInputs();
+      const bodyHtml=buildReportHTML(period);
+      const doc=`<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="utf-8"><title>Co-Curricular Activities Report</title>
+<style>
+  body { margin: 0; padding: 0; }
+  .report-doc { font-family: Georgia, "Times New Roman", Times, serif; color: #1a1a1a; line-height: 1.5; font-size: 12.5px; }
+  .report-doc table { border-collapse: collapse; width: 100%; margin-bottom: 10px; }
+  .report-doc th, .report-doc td { border: 1px solid #444; padding: 6px 9px; font-size: 12.5px; text-align: left; vertical-align: top; }
+  .report-doc th { background: #eeeeee; font-weight: 600; }
+  .report-doc h1 { font-size: 19px; font-weight: 700; letter-spacing: 0.02em; text-align: center; margin: 0 0 2px; }
+  .report-doc h2 { font-size: 13.5px; font-weight: 700; margin: 22px 0 8px; padding-bottom: 4px; border-bottom: 1.5px solid #1a1a1a; text-transform: uppercase; letter-spacing: 0.03em; }
+  .report-doc p { font-size: 12.5px; margin: 0 0 8px; }
+</style>
+</head><body>${bodyHtml}</body></html>`;
+      const blob=new Blob(['\ufeff',doc],{type:'application/msword'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');a.href=url;a.download=`co-curricular-${period}-report-${today()}.doc`;
+      document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+    }
+
+    const VIEWS={dashboard:viewDashboard,analytics:viewAnalytics,directory:viewDirectory,registration:viewRegistration,memberships:viewMemberships,elections:viewElections,events:viewEvents,achievements:viewAchievements,budget:viewBudget,announcements:viewAnnouncements,volunteer:viewVolunteer};
+
+    /* ---------- Render + event wiring ---------- */
+    function render(){
+      renderNav();
+      const label=NAV_ITEMS.find(n=>n.id===currentTab)?.label||'';
+      document.getElementById('mobile-title').textContent=label;
+      const el=document.getElementById('view');
+      el.classList.remove('fade-in');
+      el.innerHTML=VIEWS[currentTab]();
+      void el.offsetWidth;
+      el.classList.add('fade-in');
+      wireView();
+    }
+
+    function wireView(){
+      const byId=id=>document.getElementById(id);
+
+      if(currentTab==='analytics'){
+        renderAnalyticsCharts();
+        const meta=state.reportMeta;
+        if(byId('rpt-institution'))byId('rpt-institution').value=meta.institution;
+        if(byId('rpt-prepared-by'))byId('rpt-prepared-by').value=meta.preparedBy;
+        if(byId('rpt-noted-by'))byId('rpt-noted-by').value=meta.notedBy;
+        const refreshPreview=()=>{
+          syncReportMetaFromInputs();
+          const preview=byId('report-preview');
+          if(preview)preview.innerHTML=buildReportHTML(state.reportPeriod);
+        };
+        ['rpt-institution','rpt-prepared-by','rpt-noted-by'].forEach(id=>byId(id)?.addEventListener('input',refreshPreview));
+        byId('rpt-group-category')?.addEventListener('change',e=>{ state.reportGroupByCategory=e.target.checked; refreshPreview(); });
+        document.querySelectorAll('[data-report-section]').forEach(cb=>{
+          cb.addEventListener('change',()=>{
+            state.reportSections[cb.getAttribute('data-report-section')]=cb.checked;
+            refreshPreview();
+          });
+        });
+        byId('rpt-sections-all')?.addEventListener('click',()=>{
+          REPORT_SECTION_DEFS.forEach(s=>state.reportSections[s.key]=true);
+          render();
+        });
+        byId('rpt-sections-none')?.addEventListener('click',()=>{
+          REPORT_SECTION_DEFS.forEach(s=>state.reportSections[s.key]=false);
+          render();
+        });
+        document.querySelectorAll('[data-period]').forEach(btn=>{
+          btn.addEventListener('click',()=>{ syncReportMetaFromInputs(); state.reportPeriod=btn.getAttribute('data-period'); render(); });
+        });
+        byId('btn-download-pdf')?.addEventListener('click',()=>printReport(state.reportPeriod));
+        byId('btn-download-word')?.addEventListener('click',()=>downloadWordReport(state.reportPeriod));
+      }
+
+      if(currentTab==='dashboard'){
+        byId('go-volunteer')?.addEventListener('click',()=>{ currentTab='volunteer'; render(); });
+      }
+
+      if(currentTab==='directory'){
+        byId('directory-search')?.addEventListener('input',e=>{
+          state.query=e.target.value; render();
+          byId('directory-search').focus();
+          byId('directory-search').selectionStart=byId('directory-search').value.length;
+        });
+      }
+
+      if(currentTab==='registration'){
+        byId('registration-form')?.addEventListener('submit',e=>{
+          e.preventDefault();
+          const name=val('reg-name'),adviser=val('reg-adviser'),established=val('reg-established');
+          if(!name||!adviser||!established)return;
+          state.clubs.push({id:nextId('CLB',state.clubs),name,category:val('reg-category'),adviser,established,status:'pending'});
+          render();
+        });
+      }
+
+      if(currentTab==='memberships'){
+        byId('membership-form')?.addEventListener('submit',e=>{
+          e.preventDefault();
+          const student=val('mem-student'); if(!student)return;
+          state.members.push({id:nextId('MEM',state.members),club:val('mem-club'),student,role:val('mem-role'),joined:today(),status:'active'});
+          render();
+        });
+      }
+
+      if(currentTab==='elections'){
+        byId('election-form')?.addEventListener('submit',e=>{
+          e.preventDefault();
+          const position=val('elc-position'),candidate=val('elc-candidate'); if(!position||!candidate)return;
+          state.elections.push({id:nextId('ELC',state.elections),club:val('elc-club'),position,candidate,term:val('elc-term')||'SY 2025-2026',votes:0,status:'pending'});
+          render();
+        });
+        document.querySelectorAll('[data-decide]').forEach(btn=>{
+          btn.addEventListener('click',()=>{
+            const[,id,status]=btn.getAttribute('data-decide').split(':');
+            const row=state.elections.find(e=>e.id===id); if(row)row.status=status; render();
+          });
+        });
+      }
+
+      if(currentTab==='events'){
+        byId('event-form')?.addEventListener('submit',e=>{
+          e.preventDefault();
+          const title=val('evt-title'),date=val('evt-date'); if(!title||!date)return;
+          state.events.push({id:nextId('EVT',state.events),club:val('evt-club'),title,date,location:val('evt-location')});
+          render();
+        });
+        byId('attendance-form')?.addEventListener('submit',e=>{
+          e.preventDefault();
+          const student=val('att-student'); if(!student)return;
+          state.attendance.push({id:nextId('ATT',state.attendance),event:val('att-event'),student,status:val('att-status'),timeIn:val('att-timein')||'-',timeOut:val('att-timeout')||'-'});
+          render();
+        });
+      }
+
+      if(currentTab==='achievements'){
+        byId('achievement-form')?.addEventListener('submit',e=>{
+          e.preventDefault();
+          const title=val('ach-title'),date=val('ach-date'); if(!title||!date)return;
+          state.achievements.push({id:nextId('ACH',state.achievements),club:val('ach-club'),title,date,level:val('ach-level')});
+          render();
+        });
+      }
+
+      if(currentTab==='budget'){
+        byId('budget-form')?.addEventListener('submit',e=>{
+          e.preventDefault();
+          const purpose=val('bud-purpose'),amount=val('bud-amount'); if(!purpose||!amount)return;
+          state.budget.push({id:nextId('BUD',state.budget),club:val('bud-club'),purpose,amount,requested:today(),status:'pending'});
+          render();
+        });
+        document.querySelectorAll('[data-decide]').forEach(btn=>{
+          btn.addEventListener('click',()=>{
+            const[,id,status]=btn.getAttribute('data-decide').split(':');
+            const row=state.budget.find(b=>b.id===id); if(row)row.status=status; render();
+          });
+        });
+      }
+
+      /* ====== ANNOUNCEMENTS wiring — image upload ====== */
+      if(currentTab==='announcements'){
+        const imgInput = byId('ann-img');
+        const previewArea = byId('ann-img-preview-area');
+        const labelText = byId('ann-img-label-text');
+
+        function clearPendingImg(){
+          state._pendingAnnImg=null;
+          previewArea.innerHTML='';
+          if(labelText) labelText.textContent='Choose image or drag here';
+          if(imgInput) imgInput.value='';
+        }
+
+        /* live preview when file chosen */
+        imgInput?.addEventListener('change',()=>{
+          const file=imgInput.files[0];
+          if(!file){clearPendingImg();return;}
+          const reader=new FileReader();
+          reader.onload=ev=>{
+            state._pendingAnnImg=ev.target.result;
+            if(labelText) labelText.textContent=file.name;
+            previewArea.innerHTML=`<div class="img-preview-wrap">
+  <img src="${ev.target.result}" alt="Preview">
+  <button type="button" class="remove-img" id="ann-remove-img" aria-label="Remove image">&times;</button>
+</div>`;
+            byId('ann-remove-img')?.addEventListener('click',clearPendingImg);
+          };
+          reader.readAsDataURL(file);
+        });
+
+        /* drag-and-drop onto the label */
+        const uploadLabel = document.querySelector('label[for="ann-img"]');
+        uploadLabel?.addEventListener('dragover',e=>{e.preventDefault();uploadLabel.style.borderColor='#64748b';});
+        uploadLabel?.addEventListener('dragleave',()=>{uploadLabel.style.borderColor='';});
+        uploadLabel?.addEventListener('drop',e=>{
+          e.preventDefault();uploadLabel.style.borderColor='';
+          const file=e.dataTransfer.files[0];
+          if(!file||!file.type.startsWith('image/'))return;
+          const dt=new DataTransfer();dt.items.add(file);imgInput.files=dt.files;
+          imgInput.dispatchEvent(new Event('change'));
+        });
+
+        byId('announcement-form')?.addEventListener('submit',e=>{
+          e.preventDefault();
+          const sender=val('ann-sender'),content=val('ann-content');
+          const hasImage=!!state._pendingAnnImg;
+          if(!sender)return;
+          if(!content&&!hasImage)return;
+          state.announcements.unshift({
+            id:nextId('ANN',state.announcements),
+            club:val('ann-club'),sender,content,date:today(),
+            image:state._pendingAnnImg||null,
+          });
+          clearPendingImg();
+          render();
+        });
+      }
+
+      if(currentTab==='volunteer'){
+        byId('volunteer-form')?.addEventListener('submit',e=>{
+          e.preventDefault();
+          const student=val('vol-student'),hours=val('vol-hours'); if(!student||!hours)return;
+          state.volunteer.push({id:nextId('VOL',state.volunteer),student,club:val('vol-club'),activity:val('vol-activity'),hours,date:today(),verifiedBy:val('vol-verified')});
+          render();
+        });
+      }
+    }
+
+    render();
+    </script>
+  </body>
+</html>
