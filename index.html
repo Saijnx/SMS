@@ -29,17 +29,17 @@
       #sidebar { transition: transform 0.2s ease; }
       #overlay { display: none; }
       #overlay.open { display: block; }
-      .report-doc { font-family: Georgia, "Times New Roman", Times, serif; color: #1a1a1a; line-height: 1.5; }
+      .report-doc { font-family: "Times New Roman", Times, serif; color: #1a1a1a; line-height: 1.5; font-size: 10pt; }
       .report-doc table { border-collapse: collapse; width: 100%; }
-      .report-doc th, .report-doc td { border: 1px solid #444; padding: 6px 9px; font-size: 12.5px; text-align: left; vertical-align: top; }
+      .report-doc th, .report-doc td { border: 1px solid #444; padding: 6px 9px; font-size: 10pt; text-align: left; vertical-align: top; }
       .report-doc th { background: #eeeeee; font-weight: 600; }
-      .report-doc h1 { font-size: 19px; font-weight: 700; letter-spacing: 0.02em; text-align: center; margin: 0 0 2px; }
-      .report-doc h2 { font-size: 13.5px; font-weight: 700; margin: 22px 0 8px; padding-bottom: 4px; border-bottom: 1.5px solid #1a1a1a; text-transform: uppercase; letter-spacing: 0.03em; }
-      .report-doc p { font-size: 12.5px; margin: 0 0 8px; }
-      .report-preview-shell .report-doc h1 { font-size: 13px; }
-      .report-preview-shell .report-doc h2 { font-size: 9.5px; margin: 12px 0 5px; }
-      .report-preview-shell .report-doc p { font-size: 9.5px; margin: 0 0 5px; }
-      .report-preview-shell .report-doc th, .report-preview-shell .report-doc td { font-size: 8.5px; padding: 3px 5px; }
+      .report-doc h1 { font-size: 14pt; font-weight: 700; letter-spacing: 0.02em; text-align: center; margin: 0 0 2px; }
+      .report-doc h2 { font-size: 11pt; font-weight: 700; margin: 22px 0 8px; padding-bottom: 4px; border-bottom: 1.5px solid #1a1a1a; text-transform: uppercase; letter-spacing: 0.03em; }
+      .report-doc p { font-size: 10pt; margin: 0 0 8px; }
+      .report-preview-shell .report-doc h1 { font-size: 10.5pt; }
+      .report-preview-shell .report-doc h2 { font-size: 7.5pt; margin: 12px 0 5px; }
+      .report-preview-shell .report-doc p { font-size: 7.5pt; margin: 0 0 5px; }
+      .report-preview-shell .report-doc th, .report-preview-shell .report-doc td { font-size: 6.5pt; padding: 3px 5px; }
       /* ---- image upload area ---- */
       .img-upload-label { display: flex; align-items: center; gap: 8px; cursor: pointer; border: 1.5px dashed #cbd5e1; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #64748b; transition: border-color .15s, background .15s; }
       .img-upload-label:hover { border-color: #94a3b8; background: #f8fafc; }
@@ -51,11 +51,25 @@
       @media print {
         body.printing-report > *:not(#report-print-area) { display: none !important; }
         #report-print-area { display: block !important; padding: 0 !important; }
-        @page { margin: 18mm 16mm; }
+        @page { margin: 18mm 16mm 30mm 16mm; }
         .report-doc tr { break-inside: avoid; }
         .report-doc table { break-inside: auto; }
         .report-doc h2 { break-after: avoid; }
         .report-doc h1, .report-doc > p:first-of-type { break-after: avoid; }
+        /* Signature block pinned to the bottom of every printed page so its
+           position never shifts, no matter how much content is above it. */
+        #report-signature {
+          position: fixed;
+          left: 16mm;
+          right: 16mm;
+          bottom: 10mm;
+          margin-top: 0 !important;
+        }
+        /* Reserve space at the bottom of the flow so table rows never print
+           underneath the fixed signature block. */
+        #report-print-area .report-doc {
+          padding-bottom: 34mm;
+        }
       }
       @media (max-width: 767px) {
         #sidebar { position: fixed; inset: 0 auto 0 0; transform: translateX(-100%); z-index: 40; width: 260px; }
@@ -643,30 +657,30 @@ ${chartCard('Officer election status','Filed candidacies grouped by review statu
       if(!groupByCategory) return reportTable(['Date','Club','Event','Location'],events.map(e=>[fmtShort(e.date),esc(e.club),esc(e.title),esc(e.location)]));
       const groups=groupBy(events, e=>clubCategory(e.club));
       const keys=sortedCategoryKeys(groups);
-      if(!keys.length) return `<p style="font-size:12.5px;color:#777;">No events for this period.</p>`;
+      if(!keys.length) return `<p style="font-size:10pt;color:#777;">No events for this period.</p>`;
       const overview=categoryOverviewTable(groups,'Events');
       const details=keys.map(cat=>{
         const rows=groups[cat];
         const tbl=reportTable(['Date','Club','Event','Location'],rows.map(e=>[fmtShort(e.date),esc(e.club),esc(e.title),esc(e.location)]));
-        return `<p style="font-weight:700;font-size:12.5px;margin:12px 0 4px;">${esc(cat)} (${rows.length} event${rows.length===1?'':'s'})</p>${tbl}`;
+        return `<p style="font-weight:700;font-size:10pt;margin:12px 0 4px;">${esc(cat)} (${rows.length} event${rows.length===1?'':'s'})</p>${tbl}`;
       }).join('');
-      return `<p style="font-size:11px;color:#555;margin:0 0 4px;">Category overview:</p>${overview}${details}`;
+      return `<p style="font-size:9pt;color:#555;margin:0 0 4px;">Category overview:</p>${overview}${details}`;
     }
 
     function buildBudgetSection(budget, groupByCategory){
       if(!groupByCategory) return reportTable(['Date Requested','Club','Purpose','Amount','Status'],budget.map(b=>[fmtShort(b.requested),esc(b.club),esc(b.purpose),peso(b.amount),esc(b.status)]));
       const groups=groupBy(budget, b=>clubCategory(b.club));
       const keys=sortedCategoryKeys(groups);
-      if(!keys.length) return `<p style="font-size:12.5px;color:#777;">No budget requests for this period.</p>`;
+      if(!keys.length) return `<p style="font-size:10pt;color:#777;">No budget requests for this period.</p>`;
       const amountOf=b=>Number(String(b.amount).replace(/,/g,''))||0;
       const overview=categoryOverviewTable(groups,'Total amount',items=>peso(items.reduce((s,b)=>s+amountOf(b),0)));
       const details=keys.map(cat=>{
         const rows=groups[cat];
         const subtotal=rows.reduce((s,b)=>s+amountOf(b),0);
         const tbl=reportTable(['Date Requested','Club','Purpose','Amount','Status'],rows.map(b=>[fmtShort(b.requested),esc(b.club),esc(b.purpose),peso(b.amount),esc(b.status)]));
-        return `<p style="font-weight:700;font-size:12.5px;margin:12px 0 4px;">${esc(cat)} — Subtotal: ${peso(subtotal)}</p>${tbl}`;
+        return `<p style="font-weight:700;font-size:10pt;margin:12px 0 4px;">${esc(cat)} — Subtotal: ${peso(subtotal)}</p>${tbl}`;
       }).join('');
-      return `<p style="font-size:11px;color:#555;margin:0 0 4px;">Category overview:</p>${overview}${details}`;
+      return `<p style="font-size:9pt;color:#555;margin:0 0 4px;">Category overview:</p>${overview}${details}`;
     }
 
     function buildAttendanceSection(attendance, groupByCategory){
@@ -674,12 +688,12 @@ ${chartCard('Officer election status','Filed candidacies grouped by review statu
       const evMap=eventClubMap();
       const groups=groupBy(attendance, a=>clubCategory(evMap[a.event]||''));
       const keys=sortedCategoryKeys(groups);
-      if(!keys.length) return `<p style="font-size:12.5px;color:#777;">No attendance records for this period.</p>`;
+      if(!keys.length) return `<p style="font-size:10pt;color:#777;">No attendance records for this period.</p>`;
       const details=keys.map(cat=>{
         const rows=groups[cat];
         const counts=countBy(rows,'status');
         const tbl=reportTable(['Event','Student','Status','Time In','Time Out'],rows.map(a=>[esc(a.event),esc(a.student),esc(a.status),esc(a.timeIn),esc(a.timeOut)]));
-        return `<p style="font-weight:700;font-size:12.5px;margin:12px 0 4px;">${esc(cat)} — Present: ${counts.present||0}, Absent: ${counts.absent||0}, Excused: ${counts.excused||0}</p>${tbl}`;
+        return `<p style="font-weight:700;font-size:10pt;margin:12px 0 4px;">${esc(cat)} — Present: ${counts.present||0}, Absent: ${counts.absent||0}, Excused: ${counts.excused||0}</p>${tbl}`;
       }).join('');
       return details;
     }
@@ -688,14 +702,14 @@ ${chartCard('Officer election status','Filed candidacies grouped by review statu
       if(!groupByCategory) return reportTable(['Date','Club','Title','Level'],achievements.map(a=>[fmtShort(a.date),esc(a.club),esc(a.title),esc(a.level)]));
       const groups=groupBy(achievements, a=>clubCategory(a.club));
       const keys=sortedCategoryKeys(groups);
-      if(!keys.length) return `<p style="font-size:12.5px;color:#777;">No achievements for this period.</p>`;
+      if(!keys.length) return `<p style="font-size:10pt;color:#777;">No achievements for this period.</p>`;
       const overview=categoryOverviewTable(groups,'Achievements');
       const details=keys.map(cat=>{
         const rows=groups[cat];
         const tbl=reportTable(['Date','Club','Title','Level'],rows.map(a=>[fmtShort(a.date),esc(a.club),esc(a.title),esc(a.level)]));
-        return `<p style="font-weight:700;font-size:12.5px;margin:12px 0 4px;">${esc(cat)} (${rows.length})</p>${tbl}`;
+        return `<p style="font-weight:700;font-size:10pt;margin:12px 0 4px;">${esc(cat)} (${rows.length})</p>${tbl}`;
       }).join('');
-      return `<p style="font-size:11px;color:#555;margin:0 0 4px;">Category overview:</p>${overview}${details}`;
+      return `<p style="font-size:9pt;color:#555;margin:0 0 4px;">Category overview:</p>${overview}${details}`;
     }
 
     function collectPeriodData(period){
@@ -712,7 +726,7 @@ ${chartCard('Officer election status','Filed candidacies grouped by review statu
       return{start,end,generatedAt,events,attendance,budget,volunteer,achievements,attendanceCounts,budgetTotal,volunteerTotal};
     }
 
-    function buildReportHTML(period){
+    function buildReportHTML(period, forWord){
       const d=collectPeriodData(period);
       const meta=state.reportMeta;
       const activeClubs=state.clubs.filter(c=>c.status==='active').length;
@@ -734,21 +748,44 @@ ${chartCard('Officer election status','Filed candidacies grouped by review statu
         ? includedKeys.map((key,i)=>sectionHtmlByKey[key]().replace('__NUM__',ROMAN_NUMERALS[i]||String(i+1))).join('')
         : `<p style="color:#777;text-align:center;padding:24px 0;">No sections selected. Check at least one section above to build the report.</p>`;
 
-      const institutionLine=meta.institution?`<p style="text-align:center;font-size:12.5px;margin:0 0 2px;">${esc(meta.institution)}</p>`:'';
+      const institutionLine=meta.institution?`<p style="text-align:center;font-size:10pt;margin:0 0 2px;">${esc(meta.institution)}</p>`:'';
       const scopeNote = includedKeys.length && includedKeys.length<REPORT_SECTION_DEFS.length
         ? `<p style="text-align:center;font-size:10.5px;color:#777;margin:0 0 10px;">Showing: ${includedKeys.map(k=>esc(REPORT_SECTION_DEFS.find(s=>s.key===k).label)).join(', ')}</p>`
         : '';
+
+      /* ---- Signature block ----
+         Word's HTML/MHTML renderer does not support flexbox and is unreliable
+         with nested <div>s for layout — it silently ignores "display:flex" and
+         can fall back to its own default theme styling on plain-looking text.
+         A real HTML <table> with redundant, explicit color attributes is the
+         one layout primitive Word renders consistently, so we use that for
+         the Word export instead of the flex divs used in the on-screen preview.
+
+         Both versions now carry the id "report-signature" (Word uses an
+         mso-element:footer wrapper further below) so the block can be pinned
+         to a fixed spot and stop drifting when content above it changes. */
+      const signatureBlock = forWord
+        ? `<table style="width:100%;border:none;margin-top:56px;" cellpadding="0" cellspacing="0">
+  <tr>
+    <td style="width:45%;text-align:center;border:none;border-top:1px solid #1a1a1a;padding-top:4px;"><font color="#1a1a1a" style="font-size:10pt;font-family:'Times New Roman',Times,serif;">${esc(meta.preparedBy)||'&nbsp;'}</font><br><font color="#555555" style="font-size:9pt;font-family:'Times New Roman',Times,serif;">${esc(meta.preparedByTitle)}</font></td>
+    <td style="width:10%;border:none;">&nbsp;</td>
+    <td style="width:45%;text-align:center;border:none;border-top:1px solid #1a1a1a;padding-top:4px;"><font color="#1a1a1a" style="font-size:10pt;font-family:'Times New Roman',Times,serif;">${esc(meta.notedBy)||'&nbsp;'}</font><br><font color="#555555" style="font-size:9pt;font-family:'Times New Roman',Times,serif;">${esc(meta.notedByTitle)}</font></td>
+  </tr>
+</table>`
+        : `<div id="report-signature" style="display:flex;justify-content:space-between;margin-top:56px;">
+  <div style="width:45%;text-align:center;"><div style="border-top:1px solid #1a1a1a;padding-top:4px;font-size:10pt;">${esc(meta.preparedBy)||'&nbsp;'}<br><span style="font-size:9pt;color:#555;">${esc(meta.preparedByTitle)}</span></div></div>
+  <div style="width:45%;text-align:center;"><div style="border-top:1px solid #1a1a1a;padding-top:4px;font-size:10pt;">${esc(meta.notedBy)||'&nbsp;'}<br><span style="font-size:9pt;color:#555;">${esc(meta.notedByTitle)}</span></div></div>
+</div>`;
+
       return `<div class="report-doc">
 ${institutionLine}
 <h1>Co-Curricular Activities Report</h1>
-<p style="text-align:center;margin:0 0 4px;font-size:12.5px;">${esc(PERIOD_LABELS[period])} &nbsp;&middot;&nbsp; ${fmtLong(d.start)} to ${fmtLong(d.end)}</p>
+<p style="text-align:center;margin:0 0 4px;font-size:10pt;">${esc(PERIOD_LABELS[period])} &nbsp;&middot;&nbsp; ${fmtLong(d.start)} to ${fmtLong(d.end)}</p>
 ${scopeNote}
-<p style="text-align:right;font-size:11px;color:#555;margin:0 0 14px;">Generated ${fmtLong(d.generatedAt)}</p>
+<p style="text-align:right;font-size:9pt;color:#555;margin:0 0 14px;">Generated ${fmtLong(d.generatedAt)}</p>
 ${bodyHtml}
-<div style="display:flex;justify-content:space-between;margin-top:56px;">
-  <div style="width:45%;text-align:center;"><div style="border-top:1px solid #1a1a1a;padding-top:4px;font-size:12.5px;">${esc(meta.preparedBy)||'&nbsp;'}<br><span style="font-size:11px;color:#555;">${esc(meta.preparedByTitle)}</span></div></div>
-  <div style="width:45%;text-align:center;"><div style="border-top:1px solid #1a1a1a;padding-top:4px;font-size:12.5px;">${esc(meta.notedBy)||'&nbsp;'}<br><span style="font-size:11px;color:#555;">${esc(meta.notedByTitle)}</span></div></div>
-</div></div>`;
+${signatureBlock}
+</div>`;
     }
 
     function syncReportMetaFromInputs(){
@@ -771,21 +808,57 @@ ${bodyHtml}
     });
     function downloadWordReport(period){
       syncReportMetaFromInputs();
-      const bodyHtml=buildReportHTML(period);
+      /* forWord=true swaps the flex-based signature block for a table-based
+         one, since Word's HTML renderer doesn't understand flexbox. That
+         table is placed inside a real Word "footer" (mso-element:footer)
+         below, so Word pins it to the bottom of every page — its position
+         will not shift even if the person edits or adds content to the body
+         afterwards in Word. */
+      const bodyHtml=buildReportHTML(period, true);
+      const meta=state.reportMeta;
+      const footerHtml=`<table style="width:100%;border:none;margin-top:0;" cellpadding="0" cellspacing="0">
+  <tr>
+    <td style="width:45%;text-align:center;border:none;border-top:1px solid #1a1a1a;padding-top:4px;"><font color="#1a1a1a" style="font-size:10pt;font-family:'Times New Roman',Times,serif;">${esc(meta.preparedBy)||'&nbsp;'}</font><br><font color="#555555" style="font-size:9pt;font-family:'Times New Roman',Times,serif;">${esc(meta.preparedByTitle)}</font></td>
+    <td style="width:10%;border:none;">&nbsp;</td>
+    <td style="width:45%;text-align:center;border:none;border-top:1px solid #1a1a1a;padding-top:4px;"><font color="#1a1a1a" style="font-size:10pt;font-family:'Times New Roman',Times,serif;">${esc(meta.notedBy)||'&nbsp;'}</font><br><font color="#555555" style="font-size:9pt;font-family:'Times New Roman',Times,serif;">${esc(meta.notedByTitle)}</font></td>
+  </tr>
+</table>`;
+      /* Strip the in-flow signature table out of bodyHtml since it now lives
+         in the dedicated Word footer instead (avoid printing it twice). */
+      const bodyHtmlNoSignature=bodyHtml.replace(/<table style="width:100%;border:none;margin-top:56px;"[\s\S]*?<\/table>\s*$/,'');
       const doc=`<!DOCTYPE html>
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
-<head><meta charset="utf-8"><title>Co-Curricular Activities Report</title>
+<head>
+<meta charset="utf-8">
+<title>Co-Curricular Activities Report</title>
+<!--[if gte mso 9]>
+<xml>
+<w:WordDocument>
+<w:View>Print</w:View>
+<w:DoNotOptimizeForBrowser/>
+<w:DoNotAutoformat/>
+</w:WordDocument>
+</xml>
+<![endif]-->
 <style>
-  body { margin: 0; padding: 0; }
-  .report-doc { font-family: Georgia, "Times New Roman", Times, serif; color: #1a1a1a; line-height: 1.5; font-size: 12.5px; }
-  .report-doc table { border-collapse: collapse; width: 100%; margin-bottom: 10px; }
-  .report-doc th, .report-doc td { border: 1px solid #444; padding: 6px 9px; font-size: 12.5px; text-align: left; vertical-align: top; }
-  .report-doc th { background: #eeeeee; font-weight: 600; }
-  .report-doc h1 { font-size: 19px; font-weight: 700; letter-spacing: 0.02em; text-align: center; margin: 0 0 2px; }
-  .report-doc h2 { font-size: 13.5px; font-weight: 700; margin: 22px 0 8px; padding-bottom: 4px; border-bottom: 1.5px solid #1a1a1a; text-transform: uppercase; letter-spacing: 0.03em; }
-  .report-doc p { font-size: 12.5px; margin: 0 0 8px; }
+  @page Section1 { size: 8.5in 11in; margin: 1in 1in 1.3in 1in; mso-header-margin: .5in; mso-footer-margin: .5in; mso-footer: f1; }
+  div.Section1 { page: Section1; }
+  body { margin: 0; padding: 0; font-family: Georgia, "Times New Roman", Times, serif; color: #1a1a1a; }
+  .report-doc { font-family: "Times New Roman", Times, serif; color: #1a1a1a; line-height: 1.5; font-size: 10pt; mso-line-height-rule: exactly; }
+  .report-doc table { border-collapse: collapse; width: 100%; margin-bottom: 10px; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+  .report-doc th, .report-doc td { border: 1px solid #444444; padding: 6px 9px; font-size: 10pt; font-family: "Times New Roman", Times, serif; text-align: left; vertical-align: top; color: #1a1a1a; }
+  .report-doc th { background: #eeeeee; font-weight: 700; }
+  .report-doc h1 { font-size: 14pt; font-weight: 700; letter-spacing: 0.02em; text-align: center; margin: 0 0 2px; color: #1a1a1a; font-family: "Times New Roman", Times, serif; }
+  .report-doc h2 { font-size: 11pt; font-weight: 700; margin: 22px 0 8px; padding-bottom: 4px; border-bottom: 1.5px solid #1a1a1a; text-transform: uppercase; letter-spacing: 0.03em; color: #1a1a1a; font-family: "Times New Roman", Times, serif; }
+  .report-doc p { font-size: 10pt; margin: 0 0 8px; color: #1a1a1a; font-family: "Times New Roman", Times, serif; }
+  .report-doc strong { color: #1a1a1a; }
+  .report-doc font { font-family: "Times New Roman", Times, serif; }
+  /* Real Word footer — Word pins this to the bottom margin of every page. */
+  #f1 { mso-element: footer; }
 </style>
-</head><body>${bodyHtml}</body></html>`;
+</head><body><div class="Section1">${bodyHtmlNoSignature}
+<div style="mso-element:footer;" id="f1">${footerHtml}</div>
+</div></body></html>`;
       const blob=new Blob(['\ufeff',doc],{type:'application/msword'});
       const url=URL.createObjectURL(blob);
       const a=document.createElement('a');a.href=url;a.download=`co-curricular-${period}-report-${today()}.doc`;
